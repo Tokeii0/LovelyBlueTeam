@@ -1,0 +1,32 @@
+{
+  "agentId": "",
+  "name": "Nginx 服务器",
+  "token": "",
+  "platformUrl": "https://logs.example.com",
+  "interval": 3,
+  "initialLines": 200,
+  "maxQueueMB": 256,
+  "sources": [
+    {
+      "path": "C:/nginx/logs/access.log",
+      "kind": "access.log",
+      "encoding": "utf-8"
+    },
+    {
+      "path": "C:/nginx/logs/error.log",
+      "kind": "error.log",
+      "encoding": "utf-8"
+    },
+    {
+      "path": "C:/nginx/logs/access_{date}.log",
+      "kind": "access.log",
+      "encoding": "utf-8",
+      "mode": "daily",
+      "daysAgo": 1,
+      "dateFormat": "%Y-%m-%d",
+      "runAfter": "00:30",
+      "neighbors": 1,
+      "dropPaths": []
+    }
+  ]
+}

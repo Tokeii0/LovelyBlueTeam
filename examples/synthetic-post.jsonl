@@ -1,0 +1,2 @@
+{"time":"2030-01-02T09:03:00+08:00","ip":"192.0.2.10","method":"POST","uri":"/business/query","status":200,"content_type":"application/json","body":"{\"query\":\"normal synthetic request\"}","upstream":"200","duration":"0.010"}
+{"time":"2030-01-02T09:04:00+08:00","ip":"198.51.100.20","method":"POST","uri":"/business/query","status":403,"content_type":"application/json","body":"{\"query\":\"UNION SELECT 1\"}","upstream":"","duration":"0.001"}

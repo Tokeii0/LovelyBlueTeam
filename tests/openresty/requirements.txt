@@ -1,0 +1,2 @@
+# Test runtime only; not needed by the applications.
+lupa==2.6

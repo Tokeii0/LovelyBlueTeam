@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>院内资源导航</title>
+<style>
+:root {
+  --bg: #f3f6fb;
+  --surface: #ffffff;
+  --surface-2: #f7f9fc;
+  --border: #e6ebf2;
+  --text: #0f172a;
+  --text-2: #5b6474;
+  --text-3: #94a0b2;
+  --brand: #2563eb;
+  --ok: #16a34a;
+  --ok-soft: #dcfce7;
+  --hero-1: #e0f2fe;
+  --hero-2: #eef2ff;
+  --shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 4px 16px rgba(15, 23, 42, .06);
+  --shadow-hover: 0 2px 4px rgba(15, 23, 42, .05), 0 12px 28px rgba(15, 23, 42, .10);
+  --focus: rgba(37, 99, 235, .35);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f141f;
+    --surface: #171e2c;
+    --surface-2: #1c2433;
+    --border: #263042;
+    --text: #e8edf5;
+    --text-2: #9aa6b8;
+    --text-3: #657186;
+    --brand: #60a5fa;
+    --ok: #22c55e;
+    --ok-soft: rgba(34, 197, 94, .14);
+    --hero-1: #0f2a3a;
+    --hero-2: #1a1f3d;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .25);
+    --shadow-hover: 0 2px 4px rgba(0, 0, 0, .35), 0 12px 28px rgba(0, 0, 0, .35);
+    --focus: rgba(96, 165, 250, .4);
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  display: flex; flex-direction: column;
+  font-family: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif;
+  font-size: 13px; color: var(--text); background: var(--bg);
+  user-select: none; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+input { font: inherit; color: inherit; user-select: text; }
+svg { display: block; }
+
+/* 标题栏 */
+.titlebar { position: absolute; inset: 0 0 auto 0; height: 40px; z-index: 20; display: flex; align-items: center; }
+.titlebar .drag { flex: 1; height: 100%; }
+.wbtn { width: 46px; height: 40px; display: grid; place-items: center; color: var(--text-2); transition: background .12s, color .12s; }
+.wbtn:hover { background: rgba(127, 127, 127, .14); color: var(--text); }
+.wbtn.close:hover { background: #e81123; color: #fff; }
+.wbtn svg { width: 10px; height: 10px; }
+
+/* 页头 */
+.header {
+  padding: 22px 28px 20px; display: flex; align-items: center; gap: 14px;
+  background:
+    radial-gradient(80% 140% at 0% 0%, var(--hero-1) 0%, transparent 70%),
+    radial-gradient(60% 120% at 100% 0%, var(--hero-2) 0%, transparent 70%);
+  border-bottom: 1px solid var(--border);
+}
+.header .logo { width: 44px; height: 44px; flex: none; filter: drop-shadow(0 6px 14px rgba(37, 99, 235, .25)); }
+.header .titles { flex: 1; min-width: 0; padding-top: 2px; }
+.header h1 { font-size: 20px; font-weight: 700; letter-spacing: .5px; }
+.header .meta { margin-top: 5px; display: flex; align-items: center; gap: 8px; color: var(--text-2); font-size: 12.5px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px;
+  background: var(--ok-soft); color: var(--ok); font-weight: 500; font-size: 12px;
+}
+.badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+.meta .ip { font-family: "Cascadia Mono", Consolas, monospace; user-select: text; }
+
+.search { position: relative; width: 220px; flex: none; margin-top: 18px; }
+.search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--text-3); pointer-events: none; }
+.search input {
+  width: 100%; height: 34px; padding: 0 12px 0 32px; border-radius: 9px; outline: none;
+  background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow);
+  transition: border-color .15s, box-shadow .15s;
+}
+.search input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--focus); }
+
+/* 资源列表 */
+.body { flex: 1; overflow-y: auto; padding: 20px 28px 28px; }
+.body::-webkit-scrollbar { width: 8px; }
+.body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; border: 2px solid var(--bg); }
+.group { margin-bottom: 22px; }
+.group h2 {
+  display: flex; align-items: center; gap: 8px; margin: 0 2px 10px;
+  font-size: 12.5px; font-weight: 600; color: var(--text-2); letter-spacing: .5px;
+}
+.group h2 .count { color: var(--text-3); font-weight: 400; }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.card {
+  display: flex; align-items: center; gap: 12px; padding: 14px; text-align: left;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow);
+  transition: transform .15s, box-shadow .15s, border-color .15s; outline: none;
+  animation: rise .3s ease-out both;
+}
+.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); border-color: transparent; }
+.card:active { transform: translateY(0) scale(.99); }
+.card:focus-visible { box-shadow: 0 0 0 3px var(--focus); }
+.card .avatar {
+  --tint: 11%;
+  width: 44px; height: 44px; border-radius: 12px; flex: none; display: grid; place-items: center;
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) var(--tint), transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 16%, transparent);
+  transition: background .2s, color .2s, box-shadow .2s, transform .2s;
+}
+.card .avatar svg { width: 22px; height: 22px; }
+.card:hover .avatar {
+  color: #fff;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c) 78%, #fff), var(--c));
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--c) 38%, transparent);
+  transform: scale(1.04);
+}
+@media (prefers-color-scheme: dark) { .card .avatar { --tint: 20%; color: color-mix(in srgb, var(--c) 62%, #fff); } }
+.card .info { flex: 1; min-width: 0; }
+.card .name { font-weight: 600; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card .desc { margin-top: 3px; color: var(--text-2); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card .go { width: 16px; height: 16px; color: var(--text-3); flex: none; opacity: 0; transform: translateX(-4px); transition: opacity .15s, transform .15s; }
+.card:hover .go { opacity: 1; transform: none; color: var(--brand); }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+
+.empty { display: none; padding: 60px 0; text-align: center; color: var(--text-3); }
+.empty svg { width: 40px; height: 40px; margin: 0 auto 10px; opacity: .6; }
+.empty.show { display: block; }
+
+.toast {
+  position: absolute; left: 50%; bottom: 22px; z-index: 30;
+  transform: translate(-50%, 10px); opacity: 0; pointer-events: none;
+  display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px;
+  background: #0f172a; color: #fff; font-size: 12.5px; box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+  transition: opacity .2s, transform .2s;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast svg { width: 14px; height: 14px; color: #4ade80; }
+.wbtn { display: none; }
+</style>
+</head>
+<body>
+
+<div class="titlebar">
+  <div class="drag" id="drag"></div>
+  <button class="wbtn" id="btnMin" title="最小化"><svg viewBox="0 0 10 10"><path d="M0 5h10" stroke="currentColor" stroke-width="1"/></svg></button>
+  <button class="wbtn close" id="btnClose" title="关闭"><svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10" stroke="currentColor" stroke-width="1"/></svg></button>
+</div>
+
+<div class="header" id="header">
+  <svg class="logo" viewBox="0 0 24 24">
+    <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#06b6d4"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs>
+    <rect x="1" y="1" width="22" height="22" rx="5.5" fill="url(#lg)"/>
+    <g fill="#fff"><rect x="5.5" y="5.5" width="5.5" height="5.5" rx="1.4"/><rect x="13" y="5.5" width="5.5" height="5.5" rx="1.4" opacity=".75"/><rect x="5.5" y="13" width="5.5" height="5.5" rx="1.4" opacity=".75"/><rect x="13" y="13" width="5.5" height="5.5" rx="1.4"/></g>
+  </svg>
+  <div class="titles">
+    <h1 id="title">院内资源导航</h1>
+    <div class="meta">
+      <span class="badge"><span class="dot"></span>已连接</span>
+      <span id="user"></span>
+      <span class="ip" id="ip"></span>
+    </div>
+  </div>
+  <div class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input id="q" placeholder="搜索系统名称或说明" spellcheck="false">
+  </div>
+</div>
+
+<div class="body" id="body">
+  <div id="groups"></div>
+  <div class="empty" id="empty">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M8.5 11h5"/></svg>
+    <div id="emptyText">没有找到匹配的资源</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg><span id="toastMsg"></span></div>
+
+<script src="/demo-bridge.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const send = (cmd, extra) => window.demoSend(cmd, extra);
+
+  // 标题栏下方的页头空白处也可以拖动窗口
+  const dragStart = e => { if (e.button === 0 && !e.target.closest('input, button')) send('drag'); };
+  $('drag').addEventListener('mousedown', dragStart);
+  $('header').addEventListener('mousedown', dragStart);
+  $('btnMin').onclick = () => send('minimize');
+  $('btnClose').onclick = () => send('close');
+
+  // 图标库：24×24 线条图标，stroke 由 CSS 的 currentColor 着色。c 为主题色。
+  const ICONS = {
+    his: { c: '#2563eb', d: '<path d="M2.5 21h19"/><path d="M4.5 21V8.2L12 4l7.5 4.2V21"/><path d="M10 21v-3.5h4V21"/><path d="M12 8v5M9.5 10.5h5"/>' },
+    emr: { c: '#0891b2', d: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8 14.5h2l1.4-3 2.2 5 1.4-2H16"/>' },
+    nurse: { c: '#e11d48', d: '<rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 3h6a1 1 0 0 1 1 1v2H8V4a1 1 0 0 1 1-1z"/><path d="M12 17.2s-3.6-2.1-3.6-4.4a1.8 1.8 0 0 1 3.6-.6 1.8 1.8 0 0 1 3.6.6c0 2.3-3.6 4.4-3.6 4.4z"/>' },
+    pacs: { c: '#7c3aed', d: '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M12 7v10"/><path d="M12 9.2c-1.9 0-3.4.5-4 1.5M12 9.2c1.9 0 3.4.5 4 1.5M12 12.2c-1.9 0-3.4.5-4 1.5M12 12.2c1.9 0 3.4.5 4 1.5M12 15.2c-1.4 0-2.5.4-3 1M12 15.2c1.4 0 2.5.4 3 1"/>' },
+    lis: { c: '#0d9488', d: '<path d="M9 3h6"/><path d="M10 3v6.2L5.2 17.6A2.3 2.3 0 0 0 7.2 21h9.6a2.3 2.3 0 0 0 2-3.4L14 9.2V3"/><path d="M7.2 15h9.6"/><circle cx="10.5" cy="18" r=".6" fill="currentColor"/><circle cx="13.6" cy="17.4" r=".9" fill="currentColor"/>' },
+    oa: { c: '#4f46e5', d: '<path d="M8 7V4.5A1.5 1.5 0 0 1 9.5 3h9A1.5 1.5 0 0 1 20 4.5v11a1.5 1.5 0 0 1-1.5 1.5H16"/><rect x="4" y="7" width="12" height="14" rx="1.5"/><path d="M7.3 14.2l2 2 3.6-4"/>' },
+    attendance: { c: '#d97706', d: '<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M9 15.2l2 2 4-4"/>' },
+    kb: { c: '#059669', d: '<path d="M12 6.6C10.5 5.1 8 4.6 4 4.6v13.2c4 0 6.5.5 8 2 1.5-1.5 4-2 8-2V4.6c-4 0-6.5.5-8 2z"/><path d="M12 6.6v13.2"/><path d="M6.8 8.6c1.4.1 2.5.4 3.2.8M6.8 11.6c1.4.1 2.5.4 3.2.8"/>' },
+    pharmacy: { c: '#16a34a', d: '<g transform="rotate(-45 12 12)"><rect x="3" y="8.5" width="18" height="7" rx="3.5"/><path d="M12 8.5v7"/></g>' },
+    finance: { c: '#ea580c', d: '<circle cx="12" cy="12" r="9"/><path d="M9 7.5l3 4 3-4M12 11.5V17M9.4 12.6h5.2M9.4 15h5.2"/>' },
+    mail: { c: '#0284c7', d: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.6 6.6l8.4 6.2 8.4-6.2"/>' },
+    report: { c: '#c026d3', d: '<path d="M4 4v16h16"/><path d="M8.5 16v-4M12.5 16V7.5M16.5 16v-6"/>' },
+    video: { c: '#db2777', d: '<rect x="3" y="6.5" width="12.5" height="11" rx="2"/><path d="M15.5 10.5l5-3v9l-5-3z"/><path d="M9.25 9.8v3.9M7.3 11.75h3.9"/>' },
+    users: { c: '#0369a1', d: '<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19.5a5.5 5.5 0 0 1 11 0"/><path d="M15.5 5.1a3 3 0 0 1 0 5.8M17.4 14.2a5.2 5.2 0 0 1 3.1 5.3"/>' },
+    server: { c: '#475569', d: '<rect x="4" y="4" width="16" height="7" rx="1.6"/><rect x="4" y="13" width="16" height="7" rx="1.6"/><circle cx="8" cy="7.5" r=".9" fill="currentColor"/><circle cx="8" cy="16.5" r=".9" fill="currentColor"/><path d="M12 7.5h4.5M12 16.5h4.5"/>' },
+    web: { c: '#3b82f6', d: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>' },
+  };
+  // 未指定 icon 时按名称、说明中的关键词匹配
+  const GUESS = [
+    [/his|医院信息|门诊|住院/i, 'his'], [/emr|病历/i, 'emr'], [/护理|护士/, 'nurse'],
+    [/pacs|影像|放射|超声/i, 'pacs'], [/lis|检验|化验|实验/i, 'lis'], [/药/, 'pharmacy'],
+    [/财务|收费|报销|预算/, 'finance'], [/考勤|排班|打卡/, 'attendance'], [/知识|手册|制度|文库|培训/, 'kb'],
+    [/邮/, 'mail'], [/报表|统计|数据|bi/i, 'report'], [/会诊|视频|远程|会议/, 'video'],
+    [/人事|人力|hr/i, 'users'], [/运维|设备|服务器|机房|监控/, 'server'], [/oa|办公|审批|公文/i, 'oa'],
+  ];
+  const iconFor = r => {
+    if (ICONS[r.icon]) return ICONS[r.icon];
+    const text = r.name + ' ' + (r.desc || '');
+    for (const [re, key] of GUESS) if (re.test(text)) return ICONS[key];
+    return ICONS.web;
+  };
+  const svgOf = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+  let resources = [];
+
+  function render() {
+    const q = $('q').value.trim().toLowerCase();
+    const list = resources.filter(r => !q || (r.name + ' ' + (r.desc || '') + ' ' + (r.group || '') + ' ' + r.url).toLowerCase().includes(q));
+    const groups = new Map();
+    for (const r of list) {
+      const g = r.group || '其他';
+      if (!groups.has(g)) groups.set(g, []);
+      groups.get(g).push(r);
+    }
+
+    const root = $('groups');
+    root.replaceChildren();
+    let i = 0;
+    for (const [name, items] of groups) {
+      const sec = el('section', 'group');
+      const h = el('h2', null, name);
+      h.appendChild(el('span', 'count', items.length));
+      sec.appendChild(h);
+      const grid = el('div', 'grid');
+      for (const r of items) {
+        const card = el('button', 'card');
+        card.title = r.name;
+        card.style.animationDelay = Math.min(i++ * 25, 300) + 'ms';
+        const ic = iconFor(r);
+        const av = el('div', 'avatar');
+        av.style.setProperty('--c', ic.c);
+        av.innerHTML = svgOf(ic.d); // 图标来自上面的内置图标库，不含外部数据
+        const info = el('div', 'info');
+        info.append(el('div', 'name', r.name));
+        if (r.desc) info.append(el('div', 'desc', r.desc));
+        card.append(av, info);
+        card.insertAdjacentHTML('beforeend', '<svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>');
+        card.onclick = () => { send('open', { url: r.url }); toast('合成资源：' + r.name); };
+        grid.appendChild(card);
+      }
+      sec.appendChild(grid);
+      root.appendChild(sec);
+    }
+    $('emptyText').textContent = resources.length ? '没有找到匹配的资源' : '暂未配置任何资源';
+    $('empty').classList.toggle('show', list.length === 0);
+  }
+
+  $('q').addEventListener('input', render);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && $('q').value) { $('q').value = ''; render(); }
+    else if (e.ctrlKey && e.key.toLowerCase() === 'f') { e.preventDefault(); $('q').focus(); }
+  });
+
+  let toastTimer;
+  function toast(msg) {
+    $('toastMsg').textContent = msg;
+    $('toast').classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $('toast').classList.remove('show'), 1800);
+  }
+
+  window.nav = {
+    init(p) {
+      document.title = p.title;
+      $('title').textContent = p.title;
+      $('user').textContent = p.user || '';
+      $('ip').textContent = p.ip ? 'IP ' + p.ip : '';
+      resources = p.resources || [];
+      render();
+    },
+  };
+  send('ready');
+})();
+</script>
+</body>
+</html>

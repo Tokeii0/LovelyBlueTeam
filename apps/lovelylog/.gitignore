@@ -1,0 +1,4 @@
+config.local.json
+runtime/
+*.exe
+*.zip

@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>日志 · LovelyLivelog</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <script src="/theme.js"></script>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/nav.js" type="module"></script>
+  <script src="/app.js" type="module"></script>
+  <script src="/security-ui.js" type="module"></script>
+  <script src="/hub-ui.js" type="module"></script>
+  <script src="/rule-ui.js" type="module"></script>
+  <script src="/hub-ai-ui.js" type="module"></script>
+  <script src="/clean-ui.js" type="module"></script>
+  <script src="/af-ui.js" type="module"></script>
+  <script src="/syslog-ui.js" type="module"></script>
+  <script src="/notify-ui.js" type="module"></script>
+  <script src="/manual-block-ui.js" type="module"></script>
+  <script src="/deep-ui.js" type="module"></script>
+  <script src="/blacklist-rules-ui.js" type="module"></script>
+  <script src="/geo.js" type="module"></script>
+</head>
+<body>
+  <div id="shell" class="shell" data-scope="website" data-page="logs">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="LovelyLivelog 首页"><span class="brand-icon">▥</span><span>Lovely<strong>Livelog</strong></span></a>
+      <label class="site-search"><span aria-hidden="true">⌕</span><input id="site-search" type="search" placeholder="查找网站或服务器…" aria-label="查找网站或服务器"></label>
+      <div class="sidebar-scroll">
+        <div class="sidebar-heading"><span>我的网站</span><span id="site-count" class="count">0</span><button id="reload-sites" class="icon-button" title="重新加载网站" aria-label="重新加载网站">↻</button></div>
+        <nav id="site-list" class="site-list" aria-label="网站列表"><div class="muted sidebar-empty">正在连接面板…</div></nav>
+        <div class="sidebar-heading sidebar-heading-servers"><span>服务器</span><span id="server-count" class="count">0</span><button id="sidebar-add-agent" class="icon-button" title="接入服务器" aria-label="接入服务器">＋</button></div>
+        <nav id="server-list" class="site-list" aria-label="服务器列表"><div class="muted sidebar-empty">正在读取服务器…</div></nav>
+      </div>
+      <div class="sidebar-bottom"><span class="local-dot"></span><div><strong>本机日志查看器</strong><span id="panel-host">正在读取配置</span></div></div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <nav class="main-menu" role="tablist" aria-label="功能菜单">
+          <button type="button" class="menu-item" role="tab" data-target="logs"><span class="menu-icon" aria-hidden="true">≣</span>日志</button>
+          <button type="button" class="menu-item" role="tab" data-target="ai"><span class="menu-icon" aria-hidden="true">◎</span><span id="analysis-menu-label">流量分析</span></button>
+          <button type="button" class="menu-item" role="tab" data-target="clean"><span class="menu-icon" aria-hidden="true">⌥</span>清洗规则</button>
+          <button type="button" class="menu-item" role="tab" data-target="rule"><span class="menu-icon" aria-hidden="true">⚑</span>访问规则</button>
+          <button type="button" class="menu-item" role="tab" data-target="blacklist"><span class="menu-icon" aria-hidden="true">⛔</span>黑名单</button>
+          <button type="button" class="menu-item" role="tab" data-target="af-logs"><span class="menu-icon" aria-hidden="true">▤</span>AF 安全日志</button>
+          <button type="button" class="menu-item" role="tab" data-target="agents"><span class="menu-icon" aria-hidden="true">▣</span>服务器接入<span id="server-tab-count" class="menu-badge">0</span></button>
+          <button type="button" class="menu-item" role="tab" data-target="notify"><span class="menu-icon" aria-hidden="true">✉</span>告警推送</button>
+          <button type="button" class="menu-item" role="tab" data-target="deep"><span class="menu-icon" aria-hidden="true">⌕</span>深度分析</button>
+        </nav>
+        <div class="header-actions">
+          <div class="theme-switch" role="group" aria-label="界面配色"><button type="button" data-theme-option="system" title="跟随系统">◐<span>系统</span></button><button type="button" data-theme-option="light" title="浅色">☀<span>浅色</span></button><button type="button" data-theme-option="dark" title="深色">☾<span>深色</span></button></div>
+          <button id="open-shortcuts" type="button" class="icon-button" title="键盘快捷键 (?)" aria-label="键盘快捷键">⌨</button>
+          <div id="connection" class="connection" role="status"><span class="status-dot"></span><span id="connection-text">连接中</span></div>
+        </div>
+      </header>
+
+      <div class="page-body">
+        <!-- Source heading: shown on the source-dependent pages (logs, AI). -->
+        <section class="site-heading" data-page="logs ai" data-scope="website">
+          <div class="site-symbol">⌁</div>
+          <div><div class="eyebrow">WEBSITE</div><h2 id="site-title">正在读取网站</h2><div id="site-subtitle" class="muted">连接到 1Panel 后自动显示日志</div></div>
+          <label id="site-ai-toggle" class="ai-toggle" title="关闭后，此网站的访问日志照常收集和查看，但不送 AI 识别、不会因此自动加黑" hidden><input id="site-ai-enabled" type="checkbox" role="switch"><span class="switch-track" aria-hidden="true"></span><span id="site-ai-label">参与 AI 识别</span></label>
+          <span id="site-state" class="site-state"></span>
+        </section>
+        <section class="site-heading" data-page="logs ai" data-scope="server" hidden>
+          <div class="site-symbol">▣</div>
+          <div><div class="eyebrow">SERVER</div><h2 id="server-title">全部服务器</h2><div id="server-subtitle" class="muted">Windows 代理采集的 Nginx / Tomcat 日志</div></div>
+          <span id="server-state" class="site-state"></span>
+        </section>
+
+        <!-- 日志 · 网站 -->
+        <div class="page" data-page="logs" data-scope="website">
+          <section class="metrics" aria-label="当前日志窗口统计">
+            <div class="metric"><span>本地已保存</span><strong id="metric-total" class="accent">—</strong><small id="metric-total-hint">条日志 · 全部保留</small></div>
+            <div class="metric"><span>当前窗口</span><strong id="metric-lines">—</strong><small>条 · 下方统计基于此窗口</small></div>
+            <div class="metric"><span>异常响应</span><strong id="metric-errors" class="error-value">—</strong><small id="metric-errors-hint">4xx / 5xx</small></div>
+            <div class="metric"><span>独立 IP</span><strong id="metric-ips">—</strong><small>当前窗口内</small></div>
+            <div class="metric"><span>最后同步</span><strong id="metric-time" class="time-value">—</strong><small id="metric-time-hint">等待首次读取</small></div>
+          </section>
+          <details id="insights" class="insights" open>
+            <summary><span class="insights-title">流量洞察</span><span id="insights-scope" class="muted">等待日志</span><span class="insights-toggle" aria-hidden="true">⌄</span></summary>
+            <div class="insights-grid">
+              <div class="insight-card"><div class="insight-heading"><span id="dist-title">响应状态分布</span></div><div id="dist-bar" class="dist-bar" aria-hidden="true"></div><div id="dist-legend" class="dist-legend"></div></div>
+              <div class="insight-card"><div class="insight-heading"><span>来源 IP Top 5</span><small class="muted">点击筛选</small></div><ol id="top-ips" class="top-list"></ol></div>
+              <div class="insight-card"><div class="insight-heading"><span id="top-paths-title">请求路径 Top 5</span><small class="muted">点击筛选</small></div><ol id="top-paths" class="top-list"></ol></div>
+            </div>
+          </details>
+          <section class="log-panel" aria-label="日志查看器">
+            <div class="panel-top"><div class="tabs" role="tablist" aria-label="日志类型"><button id="access-tab" class="tab active" data-kind="access.log" role="tab" aria-selected="true">访问日志 <span>ACCESS</span></button><button id="error-tab" class="tab" data-kind="error.log" role="tab" aria-selected="false">错误日志 <span>ERROR</span></button></div><div class="live-label" id="live-label"><span class="live-dot"></span> 实时读取</div></div>
+            <div class="toolbar">
+              <label class="log-search"><span aria-hidden="true">⌕</span><input id="log-search" type="search" placeholder="搜索 IP、路径、关键词…" aria-label="搜索当前窗口的日志"><kbd>/</kbd></label>
+              <label class="sr-only" for="status-filter">响应状态筛选</label><select id="status-filter"><option value="all">全部状态</option><option value="err">4xx + 5xx 异常</option><option value="2">2xx 成功</option><option value="3">3xx 跳转</option><option value="4">4xx 客户端错误</option><option value="5">5xx 服务端错误</option></select>
+              <label class="sr-only" for="interval">刷新间隔</label><select id="interval"><option value="1">每 1 秒</option><option value="3" selected>每 3 秒</option><option value="5">每 5 秒</option><option value="10">每 10 秒</option><option value="30">每 30 秒</option></select>
+              <button id="pause" class="button primary" aria-pressed="false">Ⅱ 暂停</button><button id="refresh" class="button" title="立即读取最新日志">↻ 刷新</button><button id="download" class="icon-button download-button" title="下载当前筛选后的日志" aria-label="下载当前筛选后的日志">↓</button>
+            </div>
+            <div class="view-bar"><div><span id="window-description">跟踪新增日志</span><span class="separator">/</span><span id="visible-count">等待日志</span></div><div class="view-options"><label class="raw-switch"><input id="incremental" type="checkbox" checked>仅跟踪新增</label><label class="raw-switch"><input id="raw-view" type="checkbox">原始日志</label></div></div>
+            <div id="notice" class="notice" role="status" hidden></div>
+            <div id="log-scroll" class="log-scroll" tabindex="0" aria-label="可滚动的日志内容"><table id="log-table"><thead><tr><th class="line-number">#</th><th>时间</th><th>来源 IP</th><th class="request-column">请求 / 日志内容</th><th>状态</th><th>大小</th></tr></thead><tbody id="log-rows"></tbody></table><div id="raw-lines" class="raw-lines" hidden></div><div id="empty" class="empty"><div class="empty-icon">⌁</div><strong id="empty-title">正在读取日志</strong><span id="empty-description">连接成功后，最新记录会显示在这里。</span><button id="retry" class="button" hidden>重新连接</button></div></div>
+            <footer class="log-footer"><label class="follow-switch"><input id="follow" type="checkbox" checked>跟随最新</label><div class="history-controls"><button id="older" class="text-button" disabled>← 较早日志</button><span id="page-info"></span><button id="newer" class="text-button" hidden>较新日志 →</button><button id="back-live" class="text-button accent" hidden>回到实时</button></div><label class="limit-label">读取行数 <select id="limit"><option value="200">200</option><option value="500" selected>500</option><option value="1000">1000</option><option value="2000">2000</option><option value="5000">5000</option></select></label></footer>
+          </section>
+          <footer class="page-footer"><span>日志统计基于当前窗口 · 完整日志以服务器文件为准</span><span id="source-path" title="日志来源">1PANEL API</span></footer>
+        </div>
+
+        <!-- 日志 · 服务器 -->
+        <div class="page" data-page="logs" data-scope="server" hidden>
+          <section class="metrics" aria-label="所选服务器状态">
+            <div class="metric"><span>汇总日志</span><strong id="server-metric-total">—</strong><small>平台本机保存</small></div>
+            <div class="metric"><span>在线状态</span><strong id="server-metric-online" class="accent">—</strong><small id="server-metric-online-hint">最近 90 秒有心跳</small></div>
+            <div class="metric"><span>AI 已分析</span><strong id="server-metric-ai">—</strong><small id="server-metric-ai-hint">访问日志</small></div>
+            <div class="metric"><span>待上传</span><strong id="server-metric-queue">—</strong><small>代理最近报告的队列</small></div>
+          </section>
+          <section class="log-panel" aria-label="汇总日志查看器">
+            <div class="hub-log-heading"><strong>采集日志</strong><label class="raw-switch"><input id="hub-auto-refresh" type="checkbox" checked>实时更新</label></div>
+            <div class="toolbar"><label class="log-search"><span aria-hidden="true">⌕</span><input id="hub-search" type="search" maxlength="200" placeholder="搜索已汇总的 IP、路径、关键词…" aria-label="搜索服务器汇总日志"><kbd>/</kbd></label><select id="hub-agent-filter" aria-label="筛选服务器"><option value="">全部服务器</option></select><select id="hub-kind" aria-label="筛选日志类型"><option value="all">全部日志</option><option value="access.log">访问日志</option><option value="error.log">错误日志</option><option value="custom.log">自定义日志</option></select><button id="hub-refresh" class="button">↻ 最新日志</button></div>
+            <div id="hub-notice" class="notice error" role="status" hidden></div>
+            <div class="hub-log-scroll"><table class="hub-table"><thead><tr><th>日志时间</th><th>服务器</th><th>来源 IP</th><th>请求 / 日志内容</th><th>状态</th><th>日志类型</th><th>AI 状态</th></tr></thead><tbody id="hub-rows"></tbody></table><div id="hub-empty" class="empty"><div class="empty-icon">⌁</div><strong>还没有服务器日志</strong><span>在“服务器接入”中填入真实日志路径，下载代理包到对应服务器运行。</span></div></div>
+            <footer class="log-footer"><span id="hub-page-description">每页 100 条 · 点击记录查看原文</span><div class="history-controls"><button id="hub-prev" class="text-button" disabled>← 上一页</button><span id="hub-page">第 1 页</span><button id="hub-next" class="text-button" disabled>下一页 →</button></div></footer>
+          </section>
+          <footer class="page-footer"><span>服务器日志全部保存在平台本机 · 不自动清理</span><span>WINDOWS NGINX / TOMCAT AGENT</span></footer>
+        </div>
+
+        <!-- AI 分析 · 网站 -->
+        <div class="page" data-page="ai" data-scope="website" hidden>
+          <section class="security-panel" aria-label="网站流量检测">
+            <div class="security-heading"><div><span class="eyebrow">TRAFFIC ANALYSIS</span><h2><span id="ai-title">网站 AI 分析</span> <span id="ai-badge" class="status-badge">等待配置</span></h2><p id="ai-mode-description">网站使用平台 AI 配置，LovelyLog 本地规则来源单独处理</p></div><button id="ai-settings" class="button">平台 AI 设置</button></div>
+            <div class="waf-status-line"><div id="ai-health" class="ai-health" role="status"><span id="ai-health-message">正在读取 WAF 状态…</span><div id="ai-health-detail" class="health-detail"></div></div><button id="check-waf" class="button">↻ 重新检查</button><a id="open-waf" class="text-button" href="http://10.20.30.13:18479/xpack/waf/global" target="_blank" rel="noopener noreferrer">打开 1Panel WAF ↗</a></div>
+            <div class="security-controls"><label><input id="ai-enabled" type="checkbox"> <span id="ai-enabled-label">本地正则检测</span></label><label><input id="auto-block" type="checkbox" disabled> 高置信度自动加黑</label><span id="ai-threshold" class="muted">规则命中仅供复核，手动选择封禁</span></div>
+            <div class="ai-metrics"><span>已检测 <strong id="ai-analyzed">0</strong> 条</span><span>待检测 <strong id="ai-pending">0</strong> 条</span><span><span id="ai-attack-label">规则命中</span> <strong id="ai-attacks">0</strong></span><span>已加入名单 <strong id="ai-listed">0</strong> 个 IP</span></div>
+            <div class="analysis-throughput"><span id="ai-performance">正在读取分析速度…</span><span id="ai-skipped"></span></div>
+            <div id="ai-notice" class="notice error" role="status" hidden></div>
+            <div class="analysis-history-bar"><div><strong>检测历史</strong><span id="ai-history-count" class="muted">正在加载</span></div><div class="analysis-history-tools"><label class="sr-only" for="ai-verdict-filter">检测结果筛选</label><select id="ai-verdict-filter"><option value="all">全部结果</option><option value="normal">未命中 / 正常</option><option value="attack">命中 / 攻击判断</option></select><button id="ai-history-refresh" class="button">↻ 最新记录</button></div></div>
+            <div class="ai-table-scroll"><table class="ai-table"><thead><tr><th>检测时间</th><th>来源 IP / 网站</th><th id="ai-verdict-heading">规则匹配结果</th><th>判断依据</th><th>处理结果</th><th>操作</th></tr></thead><tbody id="ai-decisions"></tbody></table><div id="ai-empty" class="ai-empty">正在加载检测历史…</div></div>
+            <footer class="analysis-history-footer"><span>每次判断可包含多条日志 · 检测结果和原始日志均保留</span><div class="history-controls"><button id="ai-history-prev" class="text-button" disabled>← 上一页</button><span id="ai-history-page" aria-live="polite">第 1 页</span><button id="ai-history-next" class="text-button" disabled>下一页 →</button></div><label class="limit-label">每页 <select id="ai-history-size" aria-label="检测历史每页条数"><option value="20">20 条</option><option value="50">50 条</option><option value="100">100 条</option></select></label></footer>
+          </section>
+        </div>
+
+        <!-- AI 分析 · 服务器 -->
+        <div class="page" data-page="ai" data-scope="server" hidden>
+          <section class="security-panel hub-ai-panel" aria-label="服务器流量检测">
+            <div class="security-heading"><div><span class="eyebrow">SERVER TRAFFIC ANALYSIS</span><h2><span id="hub-ai-title">服务器流量分析</span> <span id="hub-ai-badge" class="status-badge">正在读取</span></h2><p id="hub-ai-mode-description">按来源使用 AI 或本地规则，等待加载当前来源配置</p></div><button id="hub-open-ai-settings" class="button">平台 AI 设置</button></div>
+            <div class="ai-metrics"><span>已检测 <strong id="hub-ai-analyzed">0</strong> 条</span><span>待检测 <strong id="hub-ai-pending">0</strong> 条</span><span><span id="hub-ai-attack-label">规则命中</span> <strong id="hub-ai-attacks">0</strong></span><span>加入名单 <strong id="hub-ai-listed">0</strong> 个 IP</span></div>
+            <div id="hub-ai-policy" class="analysis-throughput"></div>
+            <div id="hub-ai-notice" class="notice error" hidden></div>
+            <div class="analysis-history-bar"><strong>服务器检测历史</strong><div class="analysis-history-tools"><select id="hub-ai-agent-filter" aria-label="筛选服务器检测"><option value="">全部服务器</option></select><select id="hub-ai-verdict" aria-label="服务器检测结果筛选"><option value="all">全部结果</option><option value="normal">未命中 / 正常</option><option value="attack">命中 / 攻击判断</option></select><button id="hub-ai-refresh" class="button">↻ 最新判断</button></div></div>
+            <div class="ai-table-scroll"><table class="ai-table"><thead><tr><th>检测时间</th><th>IP / 服务器</th><th id="hub-ai-verdict-heading">规则匹配结果</th><th>依据</th><th>处理结果</th><th>操作</th></tr></thead><tbody id="hub-ai-decisions"></tbody></table><div id="hub-ai-empty" class="ai-empty">上传访问日志后，检测结果将在这里显示。</div></div>
+            <footer class="analysis-history-footer"><span id="hub-ai-footer-policy">沿用保护名单 · 规则命中仅供复核，手动选择封禁</span><div class="history-controls"><button id="hub-ai-prev" class="text-button" disabled>← 上一页</button><span id="hub-ai-page">第 1 页</span><button id="hub-ai-next" class="text-button" disabled>下一页 →</button></div></footer>
+          </section>
+        </div>
+
+        <!-- 清洗规则 -->
+        <div class="page" data-page="clean" hidden>
+          <section class="clean-panel" aria-label="自定义清洗规则">
+            <div class="security-heading"><div><span class="eyebrow">LOG CLEANING RULES</span><h2>自定义清洗规则 <span id="clean-version" class="status-badge">正在读取</span></h2><p>按日期 -1 的代理每天清洗前从平台下载这些规则；实时上传和网站日志在送 AI 前也按规则处理。规则从上到下匹配，命中第一条即停止；同一条规则内填写的条件需全部满足。</p></div><button id="clean-add" class="button primary" type="button">＋ 添加规则</button></div>
+            <div id="clean-notice" class="notice error" role="status" hidden></div>
+            <div class="clean-scroll"><table class="clean-table"><thead><tr><th>顺序</th><th>名称</th><th>匹配条件</th><th>动作</th><th>命中</th><th>启用</th><th>操作</th></tr></thead><tbody id="clean-rows"></tbody></table><div id="clean-empty" class="ai-empty" hidden>还没有自定义规则。例如：丢弃来自监控服务器的 /actuator/health 健康检查，或把访问 /admin 的请求强制送 AI。</div></div>
+            <div class="visit-rule-footer"><strong>丢弃</strong>：不上传、不分析。<strong>仅存档</strong>：上传后可搜索，但不送 AI。<strong>强制送 AI</strong>：总是送 AI。丢弃和仅存档默认不作用于内置识别的可疑请求（路径穿越、注入、actuator / swagger 探测等），确有需要时在规则中勾选“包括可疑请求”。命中次数来自代理每日清洗报告和平台送 AI 前的处理。</div>
+          </section>
+          <section class="clean-panel" aria-label="必封记录">
+            <div class="security-heading"><div><span class="eyebrow">ALWAYS BLOCK</span><h2>必封记录 <span id="clean-block-badge" class="status-badge">—</span></h2><p>命中必封规则的来源 IP。新规则从保存后的新日志开始生效；需要处理平台已保存的日志时，点“扫描已保存日志”。</p></div><button id="clean-rescan" class="button" type="button">扫描已保存日志</button></div>
+            <div id="clean-block-notice" class="notice error" role="status" hidden></div>
+            <div class="clean-scroll"><table class="clean-block-table"><thead><tr><th>来源 IP</th><th>规则</th><th>命中</th><th>最近命中</th><th>结果</th><th>请求样本 / 说明</th></tr></thead><tbody id="clean-block-rows"></tbody></table><div id="clean-block-empty" class="ai-empty">还没有命中必封规则的 IP。</div></div>
+          </section>
+          <section class="clean-panel" aria-label="内置清洗">
+            <div class="security-heading"><div><span class="eyebrow">BUILT-IN CLEANING</span><h2>内置清洗</h2><p>自定义规则优先；未命中自定义规则的请求再按以下内置规则处理。修改后，代理在下一次按日清洗时生效。</p></div></div>
+            <form id="clean-options-form" class="clean-form">
+              <div class="clean-checks"><label class="settings-checkbox"><input id="clean-drop-static" type="checkbox">丢弃静态资源（png / js / css / 字体等）</label><label class="settings-checkbox"><input id="clean-drop-preflight" type="checkbox">丢弃成功的 OPTIONS 预检请求</label></div>
+              <div class="settings-grid"><label class="settings-field">错误请求出现在至少几个 IP 时视为页面资源缺失、不送 AI<input id="clean-widespread" type="number" min="2" max="1000" step="1" required></label><label class="settings-field">送 AI 的 IP 附带几条最常见正常请求作为上下文<input id="clean-context" type="number" min="0" max="20" step="1" required></label></div>
+              <div class="dialog-actions"><span id="clean-options-saved" class="muted" hidden>已保存</span><button class="button primary" type="submit">保存内置设置</button></div>
+            </form>
+          </section>
+          <section class="clean-panel" aria-label="规则测试">
+            <div class="security-heading"><div><span class="eyebrow">RULE TEST</span><h2>规则测试</h2><p>粘贴 1–50 行访问日志，查看按当前规则会被丢弃、仅存档还是送 AI。支持 remote_addr:… 格式、Nginx combined 和 JSON 日志。</p></div></div>
+            <div class="clean-form"><textarea id="clean-test-input" class="clean-textarea" rows="5" maxlength="12000" spellcheck="false" placeholder="remote_addr:1.2.3.4,time_local:[15/Oct/2026:01:10:22 +0800],request:GET /actuator/env HTTP/1.1,status:404,upstream_status:404,..."></textarea><div class="dialog-actions"><button id="clean-test" class="button primary" type="button">测试</button></div></div>
+            <div class="clean-scroll"><table class="clean-test-table"><thead><tr><th>请求</th><th>结果</th><th>说明</th></tr></thead><tbody id="clean-test-rows"></tbody></table></div>
+          </section>
+        </div>
+
+        <!-- 访问规则 -->
+        <div class="page" data-page="rule" hidden>
+          <section class="visit-rule-panel" aria-label="无业务网站自动加黑规则">
+            <div class="security-heading"><div><span class="eyebrow">WEBSITE ACCESS RULE</span><h2>访问即加黑 <span id="visit-rule-badge" class="status-badge">正在读取</span></h2><p><strong><span data-site-rule-domain>honeypot.example.com</span></strong> · 此网站没有业务，每分钟将新增访问 IP 去重加入 WAF 全局黑名单</p></div><label class="raw-switch"><input id="visit-rule-enabled" type="checkbox">启用规则</label></div>
+            <div class="visit-rule-summary"><span id="visit-rule-timing">正在读取执行状态…</span><span id="visit-rule-counts"></span><span>独立于 AI · 一次访问即可命中 · 保留管理员、面板及白名单保护 · 加黑影响所有启用 WAF 的网站</span></div>
+            <div id="visit-rule-notice" class="notice error" role="status" hidden></div>
+            <div class="visit-rule-scroll"><table class="visit-rule-table"><thead><tr><th>来源 IP</th><th>累计访问</th><th>最近命中</th><th>处理结果</th><th>处理说明</th></tr></thead><tbody id="visit-rule-rows"></tbody></table><div id="visit-rule-empty" class="ai-empty">从开启时建立基线，新增访问将在下一分钟统计；处理记录不经过 AI 判断。</div></div>
+            <div class="visit-rule-footer">展示最近 50 个 IP 的处理记录；命中次数累计保存，失败保留并重试。暂停规则可停止新的自动写入。</div>
+          </section>
+        </div>
+
+        <!-- 黑名单 -->
+        <div class="page" data-page="blacklist" hidden>
+          <section class="blacklist-panel" aria-label="手动加黑">
+            <div class="security-heading"><div><span class="eyebrow">MANUAL BLOCK</span><h2>手动加黑</h2><p>把 IP 直接加入 1Panel WAF 全局黑名单，并随 AF 联动同步到防火墙。与自动加黑使用同样的保护：面板地址、保留地址、保护名单、内网地址（未允许时）和 WAF 白名单中的 IP 不会被加黑。</p></div></div>
+            <form id="manual-block-form" class="clean-form" autocomplete="off">
+              <label class="settings-field">IP 地址（每行一个或用逗号分隔，一次最多 50 个；暂不支持网段）<textarea id="manual-block-ips" class="clean-textarea" rows="3" maxlength="4000" spellcheck="false" required placeholder="203.0.113.7&#10;198.51.100.20"></textarea></label>
+              <label class="settings-field">加黑原因<input id="manual-block-reason" maxlength="100" placeholder="例如：Tomcat 管理后台爆破"></label>
+              <div class="dialog-actions"><button id="manual-block-submit" class="button primary" type="submit">加入黑名单</button></div>
+            </form>
+            <div id="manual-block-notice" class="notice error" role="status" hidden></div>
+            <div class="visit-rule-scroll"><table class="manual-block-table"><thead><tr><th>IP</th><th>原因</th><th>结果</th><th>说明</th><th>时间</th><th>操作</th></tr></thead><tbody id="manual-block-rows"></tbody></table><div id="manual-block-empty" class="ai-empty">还没有手动加黑的 IP。</div></div>
+          </section>
+          <section class="blacklist-panel" aria-label="当前全部黑名单">
+            <div class="security-heading"><div><h2>当前黑名单 <span id="rules-badge" class="status-badge">正在读取</span></h2><p>1Panel WAF 全局 IP 黑名单中的全部条目，包括 AI、访问规则、清洗规则必封、手动加黑以及在 1Panel 中直接添加的。移除后随 AF 联动同步。</p></div><div class="blacklist-actions"><button id="rules-refresh" class="button" type="button">↻ 刷新</button><button id="rules-clear" class="button danger" type="button">清空黑名单</button></div></div>
+            <div class="rules-toolbar"><label class="log-search"><span aria-hidden="true">⌕</span><input id="rules-search" type="search" placeholder="搜索 IP、说明…" aria-label="搜索黑名单"></label><select id="rules-origin" aria-label="来源"><option value="">全部来源</option><option value="DeepSeek">AI 判定</option><option value="SiteVisit">访问即加黑</option><option value="CleanRule">清洗规则必封</option><option value="Manual">手动加黑</option><option value="AFSyslog">AF 安全日志</option><option value="Panel">1Panel 直接添加</option></select><label class="settings-checkbox"><input id="rules-protect" type="checkbox">移除后保护，不再自动加黑</label><button id="rules-remove" class="button" type="button" disabled>移除所选</button></div>
+            <div id="rules-progress" class="rules-progress" hidden></div>
+            <div id="rules-notice" class="notice error" role="status" hidden></div>
+            <div class="rules-scroll"><table class="rules-table"><thead><tr><th><input id="rules-all" type="checkbox" aria-label="全选当前页"></th><th>地址</th><th>来源</th><th>说明</th><th>状态</th><th>操作</th></tr></thead><tbody id="rules-rows"></tbody></table><div id="rules-empty" class="ai-empty" hidden>黑名单为空。</div></div>
+            <div class="analysis-history-footer"><span id="rules-count"></span><div class="history-controls"><button id="rules-prev" class="text-button" type="button">← 上一页</button><span id="rules-page"></span><button id="rules-next" class="text-button" type="button">下一页 →</button></div></div>
+          </section>
+          <section class="blacklist-panel" aria-label="黑名单查询接口"><div class="security-heading"><div><span class="eyebrow">BLACKLIST SYNC API</span><h2>黑名单查询与设备对接</h2><p>读取 1Panel 当前启用的全局黑名单，包含人工及程序添加的地址</p></div><button id="blacklist-refresh" class="button">↻ 读取名单</button></div><div class="blacklist-content"><p id="blacklist-summary" class="muted">正在读取当前名单…</p><label class="settings-field">只读查询接口<input id="blacklist-endpoint" readonly></label><div class="blacklist-actions"><button id="blacklist-key-button" class="button">查看专用密钥</button><button id="blacklist-copy" class="button">复制调用示例</button><a href="/api/blacklist?format=text" class="button" download="blacklist.txt">下载当前地址 TXT</a><a href="/api/blacklist" class="button" download="blacklist.json">下载 JSON</a></div><label id="blacklist-key-field" class="settings-field" hidden>接口专用密钥<input id="blacklist-key" type="text" readonly autocomplete="off"></label><pre id="blacklist-example">正在读取接口地址…</pre><p class="muted blacklist-hint">远程调用使用独立密钥，仅可读取名单；代理上传令牌不适用。文本每行一个 IP、CIDR 网段或地址段。读取失败返回错误，设备应保留上次有效规则。</p><div id="blacklist-notice" class="notice error" hidden></div></div></section>
+          <section class="blacklist-panel" aria-label="深信服 AF 防火墙联动">
+            <div class="security-heading"><div><span class="eyebrow">SANGFOR AF FIREWALL</span><h2>AF 防火墙黑名单联动 <span id="af-badge" class="status-badge">正在读取</span></h2><p>按 AF 8.0.107 API（黑白名单接口）把 1Panel WAF 全局黑名单同步到 AF 的永久黑名单。只管理描述以 <code>LovelyLivelog</code> 开头的条目，AF 上原有的其他条目不改动。</p></div><div class="blacklist-actions"><button id="af-show-log" class="button" type="button">查看日志</button><button id="af-test" class="button" type="button">测试连接</button><button id="af-sync" class="button primary" type="button">立即同步</button></div></div>
+            <form id="af-form" class="clean-form" autocomplete="off">
+              <div class="settings-grid"><label class="settings-field">AF 地址<input id="af-url" placeholder="https://AF管理IP" maxlength="200"></label><label class="settings-field">命名空间<input id="af-namespace" placeholder="public" maxlength="15"></label><label class="settings-field">WEB API 账号<input id="af-username" maxlength="60" placeholder="系统 → 管理员账号中勾选 WEB API"></label><label class="settings-field">密码<input id="af-password" type="password" maxlength="512" placeholder="留空保留已保存的密码"></label><label class="settings-field">自动同步间隔（秒）<input id="af-interval" type="number" min="60" max="86400" step="1"></label></div>
+              <div class="clean-checks"><label class="settings-checkbox"><input id="af-enabled" type="checkbox">启用自动同步</label><label class="settings-checkbox"><input id="af-verify" type="checkbox">校验 HTTPS 证书（AF 使用自签名证书时取消）</label><label class="settings-checkbox"><input id="af-remove" type="checkbox">WAF 名单移除的地址，同步从 AF 移除（仅本程序添加的条目）</label><label class="settings-checkbox"><input id="af-private" type="checkbox">包含内网地址（默认不下发，避免封锁内部设备）</label></div>
+              <p class="muted settings-description">保护名单、面板地址、保留地址始终不下发。WAF 名单读取不完整时停止同步；单轮最多移除 200 条，WAF 名单为空时不移除。</p>
+              <div class="dialog-actions"><button class="button primary" type="submit">保存 AF 设置</button></div>
+            </form>
+            <div id="af-status" class="visit-rule-summary"></div>
+            <div id="af-notice" class="notice error" role="status" hidden></div>
+            <div id="af-log-box" class="clean-form" hidden><div class="dialog-actions af-log-actions"><span class="muted">runtime/af.log 最近 200 行（不含密码和 token）</span><button id="af-log-refresh" class="button" type="button">刷新</button></div><pre id="af-log" class="af-log"></pre></div>
+            <div class="visit-rule-scroll"><table class="af-table"><thead><tr><th>时间</th><th>地址</th><th>结果</th><th>说明</th></tr></thead><tbody id="af-rows"></tbody></table><div id="af-empty" class="ai-empty">尚未同步。保存设置后可先“测试连接”，确认无误再“立即同步”或启用自动同步。</div></div>
+          </section>
+        </div>
+
+        <!-- AF Syslog -->
+        <div class="page" data-page="af-logs" hidden>
+          <section class="security-panel" aria-label="AF 安全日志">
+            <div class="security-heading"><div><span class="eyebrow">AF SYSLOG</span><h2>AF 安全日志 <span id="syslog-badge" class="status-badge">正在读取</span></h2><p>AF 主动转发，本机持续保存。无需网页登录；默认查看 Web 应用防护与漏洞攻击防护日志。</p></div><button id="syslog-refresh" class="button" type="button">↻ 刷新日志</button></div>
+            <div id="syslog-notice" class="notice error" role="status" hidden></div>
+            <div id="syslog-status" class="visit-rule-summary" role="status"></div>
+            <div id="syslog-block-status" class="visit-rule-summary" role="status"></div>
+            <details class="syslog-setup" id="syslog-setup">
+              <summary>接收设置与 AF 转发配置</summary>
+              <form id="syslog-settings" class="clean-form">
+                <div class="settings-grid">
+                  <label class="settings-field">监听地址<input id="syslog-bind" value="0.0.0.0" required></label>
+                  <label class="settings-field">UDP 端口<input id="syslog-port" type="number" value="5514" min="1" max="65535" required></label>
+                  <label class="settings-field">允许发送的 AF IP<input id="syslog-sender" placeholder="10.30.40.2" required></label>
+                </div>
+                <div class="clean-checks"><label class="settings-checkbox"><input id="syslog-autoblock" type="checkbox">WAF / IPS 命中后自动拉黑公网源 IP</label></div>
+                <p class="muted">不等待 AI 判断；排除内网和保留地址，沿用保护名单、WAF 白名单及手动解封保护。先加入 WAF 全局名单，再通过已启用的 AF 联动同步。允许和拒绝的攻击日志均适用。</p>
+                <div class="dialog-actions"><label class="settings-checkbox"><input id="syslog-enabled" type="checkbox">启用本机接收</label><button class="button primary" type="submit">保存接收设置</button></div>
+              </form>
+              <div class="syslog-instructions">
+                <p id="syslog-target"></p>
+                <ol><li>在 AF 的日志设置中开启 Syslog，添加上方服务器地址和端口，选择“安全日志”，保留设备本地存储。</li><li>在 Windows 防火墙允许该 AF 地址访问接收端口。可在管理员 PowerShell 中运行下方命令。</li><li>收到日志后，下方数量和最后接收时间会更新。保持本程序运行、电脑联网且不休眠。</li></ol>
+                <pre id="syslog-firewall" class="af-log"></pre>
+                <p class="muted">UDP 不提供重传；本机停机或网络中断期间可能漏收。只接收转发启用后的新日志，已有历史不会自动补传。未识别的格式也会保留原文，可切换“未识别”查看。</p>
+              </div>
+            </details>
+            <form id="syslog-search" class="clean-form syslog-search">
+              <div class="settings-grid">
+                <label class="settings-field">类型<select id="syslog-kind"><option value="security">Web 应用防护 + 漏洞攻击防护</option><option value="waf">Web 应用防护</option><option value="ips">漏洞攻击防护</option><option value="unknown">未识别</option><option value="other">其他日志</option><option value="all">全部日志</option></select></label>
+                <label class="settings-field">接收时间从<input id="syslog-from" type="datetime-local"></label>
+                <label class="settings-field">接收时间至<input id="syslog-to" type="datetime-local"></label>
+                <label class="settings-field">源 IP<input id="syslog-src" placeholder="全部"></label>
+                <label class="settings-field">目的 IP<input id="syslog-dst" placeholder="全部"></label>
+                <label class="settings-field">关键词<input id="syslog-query" type="search" maxlength="200" placeholder="攻击名称、URL、严重等级、动作…"></label>
+              </div>
+              <div class="dialog-actions"><label class="settings-checkbox"><input id="syslog-auto" type="checkbox" checked>每 5 秒刷新首页</label><button class="button primary" type="submit">查询</button></div>
+            </form>
+            <div class="syslog-scroll"><table class="syslog-table"><thead><tr><th>日志时间 / 接收时间</th><th>类型</th><th>源 IP</th><th>目的 IP</th><th>等级 / 动作</th><th>攻击 / 漏洞</th><th>自动拉黑</th><th>详情</th></tr></thead><tbody id="syslog-rows"></tbody></table><div id="syslog-empty" class="ai-empty">等待 AF 转发日志。</div></div>
+            <footer class="analysis-history-footer"><span id="syslog-result">尚未查询</span><div class="history-controls"><button id="syslog-prev" type="button" class="text-button" disabled>← 上一页</button><span id="syslog-page">第 1 页</span><button id="syslog-next" type="button" class="text-button" disabled>下一页 →</button></div></footer>
+          </section>
+        </div>
+
+        <!-- 服务器接入 -->
+        <div class="page" data-page="agents" hidden>
+          <section class="hub-heading"><div><div class="eyebrow">NGINX / TOMCAT LOG COLLECTION</div><h2>服务器接入</h2><p class="muted">Windows 代理采集 Nginx / Tomcat 日志 · 每 3 秒同步 · 断网自动补传</p></div><button id="add-agent" class="button primary">＋ 接入服务器</button></section>
+          <div id="hub-receiver" class="hub-receiver" role="status">正在检查代理接收端…</div>
+          <section class="metrics" aria-label="服务器采集状态"><div class="metric"><span>已接入服务器</span><strong id="hub-servers">0</strong><small>各服务器独立接入</small></div><div class="metric"><span>在线服务器</span><strong id="hub-online" class="accent">0</strong><small>最近 90 秒有心跳</small></div><div class="metric"><span>汇总日志</span><strong id="hub-total">0</strong><small>全部保存，不自动清理</small></div><div class="metric"><span>待上传</span><strong id="hub-queued">0</strong><small>代理最近报告的队列</small></div></section>
+          <div id="hub-agents" class="hub-agents" aria-label="接入的服务器"></div>
+          <footer class="page-footer"><span>代理上传与名单查询使用独立密钥</span><span>WINDOWS NGINX / TOMCAT AGENT</span></footer>
+        </div>
+
+        <!-- 深度分析 -->
+        <div class="page" data-page="deep" hidden>
+          <section class="deep-shell" aria-label="IP 深度分析">
+            <aside class="deep-side">
+              <form id="deep-start-form" class="deep-start" autocomplete="off"><input id="deep-ip" maxlength="45" required placeholder="输入 IP，例如 192.0.2.120" aria-label="要分析的 IP"><button id="deep-start" class="button primary" type="submit">分析</button></form>
+              <p class="muted deep-hint">汇总本地保存的该 IP 全部日志、历史 AI 判断和封禁状态，交给所选模型综合分析，可继续追问；主模型失败时自动使用已启用的备用模型。</p>
+              <div class="deep-list-heading">历史会话</div>
+              <nav id="deep-list" class="deep-list" aria-label="历史会话"></nav>
+            </aside>
+            <div class="deep-chat">
+              <header id="deep-head" class="deep-head" hidden>
+                <div class="deep-head-main"><div class="eyebrow">DEEP ANALYSIS</div><h2 id="deep-title"></h2><div id="deep-facts" class="deep-facts"></div></div>
+                <div class="deep-head-actions"><button id="deep-block" class="button" type="button">加入黑名单</button><button id="deep-delete" class="text-button" type="button">删除会话</button></div>
+              </header>
+              <div id="deep-messages" class="deep-messages" aria-live="polite"></div>
+              <div id="deep-notice" class="notice error" role="status" hidden></div>
+              <form id="deep-ask-form" class="deep-ask" hidden><textarea id="deep-question" rows="2" maxlength="2000" placeholder="继续追问，例如：它最早什么时候开始扫描？和合作方接口有关吗？（Enter 发送，Shift+Enter 换行）" aria-label="追问"></textarea><button id="deep-send" class="button primary" type="submit">发送</button></form>
+            </div>
+          </section>
+        </div>
+
+        <!-- 告警推送 -->
+        <div class="page" data-page="notify" hidden>
+          <section class="clean-panel" aria-label="NapCat QQ 连接">
+            <div class="security-heading"><div><span class="eyebrow">NAPCAT · ONEBOT 11</span><h2>QQ 推送连接 <span id="notify-badge" class="status-badge">正在读取</span></h2><p>通过 NapCat 的 OneBot 11 HTTP 接口向 QQ 群发送消息。地址和 token 在 NapCat WebUI → 网络配置 → HTTP 服务器（或 HTTP SSE 服务器）中查看。</p></div><div class="blacklist-actions"><button id="notify-show-log" class="button" type="button">查看日志</button><button id="notify-test" class="button" type="button">测试连接</button></div></div>
+            <form id="notify-form" class="clean-form" autocomplete="off">
+              <div class="settings-grid"><label class="settings-field">NapCat HTTP 地址<input id="notify-url" placeholder="http://127.0.0.1:3000" maxlength="200"></label><label class="settings-field">token<input id="notify-token" type="password" maxlength="512" placeholder="留空保留已保存的 token"></label></div>
+              <div class="clean-checks"><label class="settings-checkbox"><input id="notify-enabled" type="checkbox">启用关键词推送</label></div>
+              <p class="muted settings-description">关闭推送时新日志不匹配、不排队；重新开启后只推送之后收到的日志，不会补发。</p>
+              <div class="dialog-actions"><button class="button primary" type="submit">保存连接设置</button></div>
+            </form>
+            <div id="notify-status" class="visit-rule-summary"></div>
+            <div id="notify-notice" class="notice error" role="status" hidden></div>
+            <div id="notify-log-box" class="clean-form" hidden><div class="dialog-actions af-log-actions"><span class="muted">runtime/notify.log 最近 200 行（不含 token）</span><button id="notify-log-refresh" class="button" type="button">刷新</button></div><pre id="notify-log" class="af-log"></pre></div>
+          </section>
+          <section class="clean-panel" aria-label="关键词推送规则">
+            <div class="security-heading"><div><span class="eyebrow">KEYWORD ALERTS</span><h2>关键词推送规则 <span id="notify-rule-badge" class="status-badge">—</span></h2><p>平台收到的网站日志和服务器日志中包含关键词时（不区分大小写），按规则把消息推送到选定的群。合并间隔内的多次命中合成一条消息，避免刷屏。</p></div><button id="notify-add" class="button primary" type="button">＋ 添加规则</button></div>
+            <div class="clean-scroll"><table class="notify-table"><thead><tr><th>名称</th><th>关键词</th><th>范围</th><th>推送到</th><th>命中</th><th>启用</th><th>操作</th></tr></thead><tbody id="notify-rows"></tbody></table><div id="notify-empty" class="ai-empty" hidden>还没有推送规则。例如：关键词 union select、/etc/passwd 推送到运维群，或错误日志出现 OutOfMemoryError 时提醒开发群。</div></div>
+          </section>
+          <section class="clean-panel" aria-label="推送记录">
+            <div class="security-heading"><div><span class="eyebrow">DELIVERY LOG</span><h2>推送记录</h2><p>最近 100 次推送。发送失败会自动重试，最多 6 次。</p></div></div>
+            <div class="clean-scroll"><table class="notify-log-table"><thead><tr><th>时间</th><th>规则</th><th>群聊</th><th>结果</th><th>内容</th></tr></thead><tbody id="notify-log-rows"></tbody></table><div id="notify-log-empty" class="ai-empty">还没有推送记录。</div></div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="detail-dialog" data-light-dismiss><div class="dialog-heading"><strong>日志详情</strong><button id="close-detail" class="icon-button" aria-label="关闭详情">×</button></div><dl id="detail-fields" class="detail-fields"></dl><div class="detail-label">原始日志</div><pre id="detail-content"></pre><div class="dialog-actions"><button id="detail-filter-ip" class="button">只看此 IP</button><button id="detail-copy-ip" class="button">复制 IP</button><button id="copy-detail" class="button primary">复制日志</button></div></dialog>
+  <dialog id="ai-settings-dialog"><form id="ai-settings-form">
+    <div class="dialog-heading"><strong>平台 AI 设置</strong><button type="button" id="close-ai-settings" class="icon-button" aria-label="关闭平台设置">×</button></div>
+    <p class="muted settings-description">此处修改平台默认配置，不会改写 LovelyLog 的独立本地规则设置。</p>
+    <label class="settings-field">平台默认检测方式<select id="analysis-mode"><option value="ai">AI 分析</option><option value="local">本地规则</option></select></label>
+    <p id="analysis-mode-hint" class="muted settings-description">平台其他来源使用 AI，LovelyLog 来源按独立配置使用本地规则。</p>
+    <div id="ai-model-fields">
+    <p class="muted settings-description">密钥仅保存到本机。相同请求聚合发送，保留次数、时间范围和真实样本；常见敏感查询参数会被遮盖。</p>
+    <label class="settings-field">主模型服务<select id="ai-provider"><option value="deepseek">DeepSeek</option><option value="openai">OpenAI 兼容 API（自定义服务）</option><option value="jev">OpenRouter · Jev 决策模型</option></select></label>
+    <label class="settings-field" id="ai-base-url-field">API 地址<input id="ai-base-url" type="url" autocomplete="off" placeholder="https://服务商地址/v1" maxlength="2000" required></label>
+    <label class="settings-field"><span id="ai-key-label">API 密钥</span><input id="deepseek-key" type="password" autocomplete="off" placeholder="留空保留当前服务已有密钥" maxlength="512"></label>
+    <label class="settings-field">主模型名称<input id="deepseek-model" value="deepseek-flash" placeholder="填写服务商提供的模型名称" maxlength="100" required></label>
+    <p id="ai-provider-hint" class="muted settings-description"></p>
+    <label class="settings-checkbox"><input id="ai-fallback-enabled" type="checkbox">启用备用模型（主模型请求失败时自动切换）</label>
+    <div id="ai-fallback-fields" hidden>
+      <label class="settings-field">备用模型服务<select id="ai-fallback-provider"><option value="openai">OpenAI 兼容 API（自定义服务）</option><option value="deepseek">DeepSeek</option></select></label>
+      <label class="settings-field">备用 API 地址<input id="ai-fallback-base-url" type="url" autocomplete="off" placeholder="https://服务商地址/v1" maxlength="2000"></label>
+      <label class="settings-field">备用 API 密钥<input id="ai-fallback-key" type="password" autocomplete="off" placeholder="填写备用服务的 API Key" maxlength="512"></label>
+      <label class="settings-field">备用模型名称<input id="ai-fallback-model" placeholder="填写服务商提供的模型名称" maxlength="100"></label>
+    </div>
+    <p class="muted settings-description">兼容 API 使用 Chat Completions 接口，地址可填写到 /v1 或 /chat/completions。主模型限流、超时或返回无效结果时，每批尝试备用模型一次；均失败后保留日志重试。深度分析共用主备设置；Jev 主模型的文字分析沿用 DeepSeek 配置。</p>
+    </div>
+    <div class="settings-grid"><label class="settings-field">每轮最多读取（条）<input id="ai-batch-size" type="number" value="500" min="1" max="5000" step="1" required></label><label class="settings-field" data-ai-setting>同时分析的请求数<input id="ai-concurrency" type="number" value="4" min="1" max="8" step="1" required></label><label class="settings-field">空闲检查间隔（秒）<input id="ai-idle-interval" type="number" value="2" min="1" max="300" step="1" required></label><label class="settings-field" data-ai-setting>自动加黑判定分数（%）<input id="deepseek-threshold" type="number" value="95" min="50" max="100" step="1" required></label></div>
+    <p class="muted settings-description">积压时连续处理，不等待空闲间隔。限流或失败会退避重试；未完成日志保留。</p>
+    <label class="settings-field">保护名单（IP 或 CIDR，以逗号分隔）<input id="ip-allowlist" placeholder="管理员 IP、出口 IP、可信反向代理 IP" maxlength="4000"></label><label class="settings-checkbox"><input id="allow-private" type="checkbox">允许对内网 IP 加黑（保护名单始终有效）</label>
+    <p id="settings-block-policy" class="muted settings-description">本地模式关闭自动封禁。规则命中仅供复核，手动选择封禁。WAF 总开关由你在 1Panel 中管理。</p>
+    <div id="settings-error" class="notice error" hidden></div><div class="dialog-actions"><button id="save-ai-settings" class="button primary" type="submit">保存设置</button></div>
+  </form></dialog>
+  <dialog id="ai-detail-dialog" data-light-dismiss><div class="dialog-heading"><strong>分析判断与证据</strong><button id="close-ai-detail" class="icon-button" aria-label="关闭分析详情">×</button></div><pre id="ai-detail-content"></pre></dialog>
+  <dialog id="agent-dialog"><form id="agent-form"><div class="dialog-heading"><strong>接入 Windows 日志服务器</strong><button type="button" id="close-agent-dialog" class="icon-button" aria-label="关闭服务器接入">×</button></div><p class="muted settings-description">每台服务器生成独立代理包。解压到对应服务器后，双击 run.cmd 即可开始采集，无需安装 Python。</p><label class="settings-field">服务器名称<input id="agent-name" maxlength="100" placeholder="例如：业务服务器 01" required></label><label class="settings-field">平台接收地址<input id="agent-url" maxlength="500" placeholder="http://平台内网IP:8788" required></label><p class="muted settings-description">填写该服务器能访问的地址，使用平台的内网 IP 或 HTTPS 域名。远程服务器不能使用 127.0.0.1。</p><label class="settings-field">日志类型<select id="agent-template"><option value="nginx">Nginx</option><option value="tomcat">Tomcat · 按日期生成日志</option></select></label><label class="settings-field">访问日志路径（可留空）<input id="agent-access" maxlength="1000" value="C:/nginx/logs/access.log" placeholder="例如 D:/nginx/logs/access.log"></label><label class="settings-field">访问日志采集方式<select id="agent-access-mode"><option value="tail">实时跟踪新增</option><option value="daily">按日期 -1：每天清洗前一天的日志后上传</option></select></label><p id="agent-access-daily-hint" class="muted settings-description" hidden>路径用 {date} 代表日期（YYYY-MM-DD），例如 C:/nginx/logs/access_{date}.log。每天 00:30 后读取前一天的文件及相邻日期文件，只保留当天时间的记录，去掉静态资源后按 IP / 请求聚合；可疑和少见错误请求送 AI，其余仅存档。</p><label class="settings-field">运行 / 错误日志路径（可留空）<input id="agent-error" maxlength="1000" value="C:/nginx/logs/error.log" placeholder="例如 D:/nginx/logs/error.log"></label><label class="settings-field">其他应用日志路径（可留空）<input id="agent-custom" maxlength="1000" placeholder="例如 D:/ezwebapp/logs/localhost.*.log"></label><label class="settings-field">首次读取已有文件<select id="agent-initial"><option value="200">最近 200 条，然后跟踪新增</option><option value="500">最近 500 条，然后跟踪新增</option><option value="0">从现在开始，只读取新增</option></select></label><p class="muted settings-description">至少填写一条日志路径。支持 * 匹配日期文件；后续新文件从开头增量读取。默认 UTF-8。需要开机运行时，以管理员身份运行 install.cmd。</p><div id="agent-form-error" class="notice error" hidden></div><div class="dialog-actions"><button id="download-agent" type="submit" class="button primary">生成并下载专属代理包</button></div></form></dialog>
+  <dialog id="hub-detail-dialog" data-light-dismiss><div class="dialog-heading"><strong>服务器原始日志</strong><button id="close-hub-detail" class="icon-button" aria-label="关闭服务器日志详情">×</button></div><pre id="hub-detail-content"></pre></dialog>
+  <dialog id="clean-rule-dialog"><form id="clean-rule-form"><div class="dialog-heading"><strong id="clean-rule-title">添加清洗规则</strong><button type="button" id="close-clean-rule" class="icon-button" aria-label="关闭规则编辑">×</button></div><p class="muted settings-description">至少填写一个条件，留空的条件不参与匹配。</p><label class="settings-field">规则名称<input id="clean-rule-name" maxlength="60" required placeholder="例如：监控服务器健康检查"></label><label class="settings-field">动作<select id="clean-rule-action"><option value="drop">丢弃：不上传、不分析</option><option value="archive">仅存档：上传可搜索，不送 AI</option><option value="ai">强制送 AI</option><option value="block">必封：命中即把来源 IP 加入 WAF 全局黑名单（不经过 AI）</option></select></label><p id="clean-rule-block-hint" class="muted settings-description" hidden>必封规则需要填写路径正则或 User-Agent 正则，例如路径 <code>/\.env</code>、<code>/\.git/</code>。命中后约 10 秒内加入 WAF 全局黑名单，并随 AF 联动同步到防火墙；保护名单、面板地址、内网地址（未允许时）和 WAF 白名单不会被加黑。规则对实时日志和按日期清洗的日志都生效。</p><div class="settings-grid"><label class="settings-field">来源 IP / CIDR（逗号分隔）<input id="clean-rule-ip" maxlength="1000" placeholder="10.20.30.0/24, 192.0.2.3"></label><label class="settings-field">请求方法<input id="clean-rule-method" maxlength="200" placeholder="GET, POST"></label><label class="settings-field">状态码<input id="clean-rule-status" maxlength="200" placeholder="404, 5xx, 400-403"></label><label class="settings-field">User-Agent 正则<input id="clean-rule-ua" maxlength="500" placeholder="Zabbix|Prometheus"></label></div><label class="settings-field">路径正则（匹配路径和查询串，不区分大小写）<input id="clean-rule-path" maxlength="500" placeholder="^/HuBei/Encrypt/YBService$"></label><div class="clean-checks"><label class="settings-checkbox"><input id="clean-rule-suspicious" type="checkbox">包括可疑请求（丢弃 / 仅存档也作用于内置识别的攻击特征）</label><label class="settings-checkbox"><input id="clean-rule-enabled" type="checkbox" checked>启用</label></div><div id="clean-rule-error" class="notice error" hidden></div><div class="dialog-actions"><button class="button primary" type="submit">保存规则</button></div></form></dialog>
+  <dialog id="notify-rule-dialog"><form id="notify-rule-form"><div class="dialog-heading"><strong id="notify-rule-title">添加推送规则</strong><button type="button" id="close-notify-rule" class="icon-button" aria-label="关闭规则编辑">×</button></div>
+    <label class="settings-field">规则名称<input id="notify-rule-name" maxlength="60" required placeholder="例如：SQL 注入告警"></label>
+    <label class="settings-field">关键词（每行一个，不区分大小写）<textarea id="notify-rule-keywords" class="clean-textarea" rows="3" maxlength="6000" spellcheck="false" required placeholder="union select&#10;/etc/passwd&#10;OutOfMemoryError"></textarea></label>
+    <div class="clean-checks"><label class="settings-checkbox"><input id="notify-rule-all" type="checkbox">同时包含全部关键词才推送（默认包含任意一个即推送）</label></div>
+    <div class="settings-field">日志类型<div class="notify-inline"><label class="settings-checkbox"><input type="checkbox" name="notify-kind" value="access.log" checked>访问日志</label><label class="settings-checkbox"><input type="checkbox" name="notify-kind" value="error.log" checked>错误日志</label><label class="settings-checkbox"><input type="checkbox" name="notify-kind" value="custom.log" checked>其他应用日志</label></div></div>
+    <div class="settings-field">日志来源<span class="muted notify-hint">不勾选表示全部网站和服务器</span><div id="notify-sources" class="notify-picker"><span class="muted">正在读取来源…</span></div></div>
+    <div class="settings-field"><span class="notify-label-row">推送到群聊<input id="notify-group-filter" type="search" placeholder="搜索群名或群号" aria-label="搜索群聊"><button id="notify-group-reload" class="text-button accent" type="button">↻ 重新读取</button></span><div id="notify-groups" class="notify-picker"><span class="muted">正在从 NapCat 读取群列表…</span></div></div>
+    <div class="settings-field"><span class="notify-label-row">提醒（@）成员<span class="muted notify-hint">推送时在消息开头 @ 这些人，最多 20 人</span></span>
+      <div id="notify-mentions" class="notify-mentions"></div>
+      <div class="notify-label-row"><input id="notify-mention-input" inputmode="numeric" maxlength="12" placeholder="输入 QQ 号后回车添加" aria-label="添加要 @ 的 QQ 号"><button id="notify-member-load" class="text-button accent" type="button">从所选群的成员中选择</button></div>
+      <div id="notify-member-box" hidden><input id="notify-member-filter" type="search" placeholder="搜索群名片、昵称或 QQ 号" aria-label="搜索群成员"><div id="notify-members" class="notify-picker"></div></div>
+      <label class="settings-checkbox"><input id="notify-mention-all" type="checkbox">@全体成员（机器人需是群主或管理员，且受 QQ 每日次数限制）</label></div>
+    <label class="settings-field">推送内容<textarea id="notify-rule-template" class="clean-textarea" rows="8" maxlength="2000" spellcheck="false"></textarea></label>
+    <div id="notify-placeholders" class="notify-chips" aria-label="插入变量"></div>
+    <div class="detail-label">预览（示例数据）</div><pre id="notify-preview" class="notify-preview"></pre>
+    <div class="settings-grid"><label class="settings-field">合并间隔（秒）<input id="notify-rule-cooldown" type="number" min="0" max="86400" step="1" value="60" required></label><div class="settings-field">&nbsp;<label class="settings-checkbox"><input id="notify-rule-enabled" type="checkbox" checked>启用</label></div></div>
+    <p class="muted settings-description">首次命中立即推送；之后合并间隔内的命中合成下一条消息，{count} 为合并的条数，其余变量取最后一次命中。设为 0 则每轮检查（约 5 秒）推送一次。</p>
+    <div id="notify-rule-error" class="notice error" hidden></div>
+    <div class="dialog-actions"><button id="notify-send-test" class="button" type="button">发送测试消息</button><button class="button primary" type="submit">保存规则</button></div></form></dialog>
+  <dialog id="shortcuts-dialog" class="shortcuts-dialog" data-light-dismiss><div class="dialog-heading"><strong>键盘快捷键</strong><button id="close-shortcuts" class="icon-button" aria-label="关闭快捷键说明">×</button></div><dl class="shortcut-list"><dt><kbd>1</kbd> – <kbd>8</kbd></dt><dd>切换顶部菜单：日志 / AI 分析 / 清洗规则 / 访问规则 / 黑名单 / 服务器接入 / 告警推送 / 深度分析</dd><dt><kbd>/</kbd></dt><dd>聚焦日志搜索</dd><dt><kbd>Esc</kbd></dt><dd>清空并退出搜索</dd><dt><kbd>R</kbd></dt><dd>刷新当前页面数据</dd><dt><kbd>P</kbd></dt><dd>暂停 / 继续网站日志实时读取</dd><dt><kbd>T</kbd></dt><dd>切换配色：系统 → 浅色 → 深色</dd><dt><kbd>?</kbd></dt><dd>显示本说明</dd></dl></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <dialog id="syslog-detail" data-light-dismiss>
+    <div class="dialog-heading"><strong>AF 日志详情</strong><button id="syslog-detail-close" type="button" class="icon-button" aria-label="关闭日志详情">×</button></div>
+    <dl id="syslog-detail-fields" class="detail-fields"></dl>
+    <pre id="syslog-detail-raw" class="af-log"></pre>
+  </dialog>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# Keep source text consistent across Windows and Linux checkouts.
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf

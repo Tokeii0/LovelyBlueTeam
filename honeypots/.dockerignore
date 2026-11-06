@@ -1,0 +1,11 @@
+**/*_test.go
+**/runtime
+**/*.log
+**/*.jsonl
+**/*.exe
+**/*.zip
+**/*.private.*
+**/config.local.json
+**/.env
+**/node_modules
+**/.git

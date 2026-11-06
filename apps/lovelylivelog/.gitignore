@@ -1,0 +1,14 @@
+.env
+.env.tmp
+__pycache__/
+*.pyc
+*.log
+.venv/
+build/
+dist/
+test-results/
+runtime/
+*.sqlite3*
+docs/*-source.js
+docs/index*.js
+docs/waf-api-source.js

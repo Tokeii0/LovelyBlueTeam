@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LovelyLog · POST 解密分析</title><link rel="stylesheet" href="/styles.css"><script src="/app.js" defer></script></head>
+<body>
+<header class="topbar"><div class="brand"><span class="brand-mark">LP</span><div><h1>LovelyLog</h1><p>POST 流量 · 解密 · 分析</p></div></div><div class="connection"><span id="connection-dot" class="dot"></span><span id="connection-text">正在连接</span><span class="local-tag">本机工作台</span></div></header>
+<main>
+<section class="intro"><div><div class="eyebrow">REQUEST WORKSPACE</div><h2>从请求正文，看到真实行为。</h2><p id="source">正在连接日志来源…</p></div><div class="intro-actions"><button id="pause" type="button">暂停显示</button><button id="refresh" class="primary" type="button">↻ 刷新</button></div></section>
+<section class="defense-strip panel" aria-label="自动防护状态"><div><strong id="defense-title">正在检查自动防护…</strong><p id="defense-detail">解密后的正文经脱敏后送入 Livelog。</p></div><a id="livelog-link" href="http://127.0.0.1:8787/" target="_blank" rel="noopener">查看 Livelog ↗</a></section>
+<section class="metrics" aria-label="全部留存日志统计">
+<div class="metric"><span>已保存请求</span><strong id="total">—</strong><small>原始日志完整留存</small></div>
+<div class="metric"><span>明文 / 已还原</span><strong id="readable" class="mint">—</strong><small id="decrypted-count">等待统计</small></div>
+<div class="metric"><span>未完整还原</span><strong id="encrypted" class="amber">—</strong><small id="unresolved-count">待解密及部分还原</small></div>
+<div class="metric"><span>解密 / 解析失败</span><strong id="failed" class="rose">—</strong><small>原文保留，可重新解析</small></div>
+<div class="metric"><span>正文缺失</span><strong id="empty">—</strong><small>空请求、提前拦截或落盘</small></div>
+</section>
+<div id="notice" class="notice" role="status" hidden></div>
+<section class="workspace">
+<div class="requests panel">
+<div class="panel-heading"><div><h3>请求流</h3><p id="sync-status">等待首次采集</p></div><span id="selected-count" class="muted">每页最多 100 条</span></div>
+<div class="filters"><input id="search" type="search" placeholder="搜索 IP、路径、明文内容…" aria-label="搜索全部已保存日志"><select id="decode-filter" aria-label="筛选解密状态"><option value="">全部解密状态</option><option value="plain">明文</option><option value="decoded">编码还原</option><option value="decrypted">解密成功</option><option value="restored">日志关联还原</option><option value="partial">部分还原</option><option value="encrypted">待配置解密</option><option value="failed">解析失败</option><option value="empty">正文缺失</option></select><label class="check"><input id="suspicious" type="checkbox">含可疑特征</label></div>
+<div class="batch-bar"><span id="page-info">等待记录</span><button id="analyze-selected" class="text-button" disabled>补充分析所选</button></div>
+<div class="table-scroll"><table><thead><tr><th class="select-column"></th><th>时间 / 来源 IP</th><th>请求 / 正文预览</th><th>解密 / HTTP</th></tr></thead><tbody id="rows"></tbody></table><div id="no-rows" class="no-rows">正在读取日志…</div></div>
+<footer class="pagination"><button id="live" class="text-button">回到最新</button><span id="history-label">最新记录</span><button id="older" class="text-button" disabled>较早记录 →</button></footer>
+</div>
+<aside class="detail panel" aria-label="请求详情">
+<div class="panel-heading"><div><div class="eyebrow">REQUEST DETAIL</div><h3 id="detail-title">选择一条请求</h3></div><div class="detail-actions"><button id="copy" class="text-button" disabled>复制内容</button><button id="export" class="text-button" disabled>导出</button></div></div>
+<div id="detail-placeholder" class="detail-placeholder"><span>⌘</span><h4>原文与明文，在这里对照。</h4><p>点击左侧记录，查看正文、解密步骤、可疑特征及复核报告。</p></div>
+<div id="detail-main" hidden>
+<dl id="facts" class="facts"></dl><div id="decode-message" class="decode-message"></div><div id="findings" class="findings"></div>
+<div class="detail-tabs" role="tablist" aria-label="正文视图"><button data-pane="decoded" class="active" role="tab" aria-selected="true">解析结果</button><button data-pane="body" role="tab" aria-selected="false">原始正文</button><button data-pane="raw" role="tab" aria-selected="false">日志原文</button><button data-pane="preview" role="tab" aria-selected="false">脱敏预览</button><button data-pane="ai" role="tab" aria-selected="false">复核报告</button></div>
+<pre id="detail-text" class="detail-text" tabindex="0"></pre>
+<div class="analysis-actions"><button id="redecode" type="button">重新解析</button><button id="analyze" class="primary" type="button">补充文字分析</button></div><p id="ai-hint" class="ai-hint">自动分析和封禁状态显示在上方，手动补充分析前可查看送审预览。</p>
+</div></aside>
+</section>
+<details class="profiles panel"><summary><span>已加载的解密配置</span><span id="profile-count" class="muted">—</span></summary><div id="profile-list"></div><p class="muted">递归处理 body 与 body_content。业务密钥按配置匹配，密钥仅在本地使用；未还原的字段会明确标记。</p></details>
+<footer class="page-footer"><span id="flow-text">正文还原 → 本地检测 → 人工复核</span><span id="model-status">正在检查复核模式</span></footer>
+</main><div id="toast" class="toast" role="status" hidden></div>
+</body></html>

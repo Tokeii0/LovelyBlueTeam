@@ -1,0 +1,6 @@
+# Optional server/location context: only enable on an approved forensic scope.
+# This contains raw request bodies; it is NOT a redaction filter.
+access_log logs/post.log bt_post if=$bt_is_post;
+# Restrict OS permissions and retention. Never add Cookie/Authorization headers.
+# Larger bodies can be buffered to disk and appear empty in $request_body.
+# Do not enlarge buffers without bounds or infer safety from missing content.

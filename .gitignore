@@ -1,0 +1,37 @@
+# Private state
+.env
+.env.*
+!.env.example
+config.local.json
+**/agent/config.json
+*.private.*
+**/runtime/
+**/data/*.xdb
+**/__pycache__/
+*.py[cod]
+.venv/
+# Evidence / binary output never belongs in public source
+*.db
+*.db-*
+*.sqlite*
+*.log
+*.log.*
+**/*-events.jsonl
+!examples/honeypot-events.jsonl
+**/uds-channels-*.json
+honeypots/**/config.json
+*.pcap*
+*.pem
+*.key
+*.sql
+*.sql.gz
+*.exe
+*.dll
+*.zip
+*.rar
+*.7z
+dist/
+build/
+.artifacts/
+.DS_Store
+Thumbs.db

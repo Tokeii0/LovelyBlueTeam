@@ -1,0 +1,3 @@
+{"time":"2030-01-02T09:00:00+08:00","ip":"192.0.2.10","method":"GET","uri":"/health","status":200,"duration":"0.005","request_id":"synthetic-001"}
+{"time":"2030-01-02T09:01:00+08:00","ip":"198.51.100.20","method":"GET","uri":"/.env","status":403,"duration":"0.001","request_id":"synthetic-002"}
+{"time":"2030-01-02T09:02:00+08:00","ip":"203.0.113.30","method":"GET","uri":"/uploads/example.jsp","status":403,"duration":"0.001","request_id":"synthetic-003"}

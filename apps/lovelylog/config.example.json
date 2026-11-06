@@ -1,0 +1,19 @@
+{
+  "listen": "127.0.0.1:8790",
+  "log_path": "/opt/1panel/www/sites/example-app/log/post.log",
+  "data_file": "runtime/post.db",
+  "livelog_env": "../lovelylivelog/.env",
+  "poll_seconds": 3,
+  "initial_lines": 200,
+  "crypto_profiles": [],
+  "ai": {},
+  "key_files": [],
+  "defense": {
+    "enabled": false,
+    "hub_url": "http://127.0.0.1:8788",
+    "livelog_url": "http://127.0.0.1:8787",
+    "agent_id": "",
+    "agent_token": ""
+  },
+  "analysis_mode": "local"
+}
