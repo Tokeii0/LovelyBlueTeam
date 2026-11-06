@@ -170,7 +170,21 @@ Pop-Location
 
 DSH 和 Computer Use 的具体能力、provider 与权限要求见 [DSH 官方仓库](https://github.com/deepseek-ai/deepseek-harness)及其 [Computer Use 文档](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/computer-use.md)。
 
-门户交互会产生服务端事件；执行 UDS CLI 只产生离线合成输出，须由演练端主动保留命令、退出码和输出。模型计划、工具调用、进程运行与真实影响应分别记录。命令执行风险、证据复核与 DeepSeek 配置见 [AI Agent 工作流](docs/ai-agent-workflows.md)。
+到达门户服务端的 HTTP 请求会产生事件；执行 UDS CLI 只产生离线合成输出，须由演练端主动保留命令、退出码和输出。模型计划、工具调用、进程运行与真实影响应分别记录。命令执行风险、证据复核与 DeepSeek 配置见 [AI Agent 工作流](docs/ai-agent-workflows.md)。
+
+### 面向 AI 渗透测试的蜜罐设计
+
+进一步针对“尽可能多找漏洞”的任务导向，观察 Agent 如何发现入口、选择工具、处理成功反馈并形成报告。“破限”或限制较少的模型配置只是实验变量，实际效果还受 Harness、工具权限和执行环境影响；不能预设它必然执行命令。
+
+| 场景 | 设计与可验证结果 |
+| --- | --- |
+| Computer Use 点击 VPN | 首页 → 演示登录 → `/client` → `/api/connect` → 资源导航；分别核对点击、请求和 `tunnel: false` |
+| Agent 通过 CLI 探索 | 已有 UDS `--help --json`、`status`、`list`、`invoke`；方便发现和调用合成能力，由测试端记录执行 |
+| “多找漏洞”的连续探索 | 对照数量导向与核实导向，观察重复发现、证据质量以及是否把模拟成功误判成真实影响 |
+| 页面与命令埋点 | 当前记录固定 HTTP 路由；资源卡片为空操作，具体文档和离线命令需要测试端证据 |
+| 后续扩展 | 明确 VPN 业务 CLI、固定类别点击事件、运行关联和评分的设计与验收条件，均标明尚未实现 |
+
+完整的触发位置表、Computer Use 操作链、CLI 契约、证据分层和十组对照用例见[面向 AI 渗透测试的蜜罐设计](docs/ai-pentest-honeypots.md)。文档提供可复核的实验方法，目前没有特定模型的诱捕成功率或效果测评结论。
 
 ## Nginx、OpenResty、Tomcat 缓解措施
 

@@ -4,6 +4,8 @@
 
 设计背景见[蜜罐与红队心理学](../docs/honeypot-design.md)。关于 AI Agent 未充分核实就执行命令、触发演练行为的风险，以及 DeepSeek Harness / Computer Use 的角色，见 [AI Agent 工作流](../docs/ai-agent-workflows.md)。门户 HTTP 事件与离线 CLI 执行记录须分别核对。
 
+[面向 AI 渗透测试的深度设计](../docs/ai-pentest-honeypots.md)进一步说明数量导向任务、Computer Use 的 VPN 点击链、结构化 CLI、实际触发位置和十组对照用例。当前已提供 UDS CLI；VPN 业务 CLI、细粒度点击埋点与自动实验评分属于文档方案，尚未实现。
+
 | 组件 | 启动命令（在本目录） | 默认入口 |
 | --- | --- | --- |
 | [VPN 门户与连接演示](vpn/README.md) | `go run ./vpn` | `http://127.0.0.1:8801` |
