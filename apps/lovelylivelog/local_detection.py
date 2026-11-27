@@ -99,8 +99,10 @@ class _Inspection:
                 break
             variants = [current]
             uncommented = _SQL_COMMENT.sub(' ', current)
+            # Alternative view of the same consumed bytes: charging it again
+            # would exhaust the budget before later fields are inspected.
             if uncommented != current:
-                variants.append(self.consume(uncommented))
+                variants.append(uncommented)
             for text in variants:
                 for rule, expression in _COMPILED:
                     if rule['id'] in self.findings:
