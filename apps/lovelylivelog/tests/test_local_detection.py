@@ -239,6 +239,20 @@ class LocalDetectionTests(unittest.TestCase):
         self.assertTrue(verdict['modelFacts']['warnings'])
         self.assertIn('未确认安全', verdict['reason'])
 
+    def test_sql_comment_variant_does_not_double_charge_scan_budget(self):
+        # One target at the field limit with a SQL comment creates two variants
+        # (the original and the uncommented copy). They are alternative views of
+        # the same bytes, so only one field budget may be charged. Otherwise the
+        # 128 KiB total is spent before the request body is inspected and a real
+        # payload in the body is silently missed.
+        comment = '/*boundary*/'
+        target = comment + 'a' * (MAX_FIELD_CHARACTERS - len(comment))
+        verdict = self.analyze_one(event(target=target, body={'q': 'UNION SELECT 1'}))
+        self.assertTrue(verdict['is_attack'])
+        self.assertIn('SQL_UNION_SELECT', verdict['modelFacts']['ruleIds'])
+        self.assertEqual(verdict['evidence_ids'], [1])
+        self.assertLessEqual(verdict['modelFacts']['coverage']['scannedCharacters'], MAX_SCAN_CHARACTERS)
+
     def test_json_depth_and_number_of_nodes_are_bounded(self):
         deep = {'path': '../../etc/passwd'}
         for _ in range(30):
